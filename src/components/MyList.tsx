@@ -4,36 +4,31 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  Text,
+  View,
 } from "react-native";
 import character from "../data/character.json";
 import CharacterListItem from "./CharacterListItem";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const MyList = () => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
+  const [nextPage, setNextPage] = useState<string>("");
 
-  useState(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      const response = await fetch("https://rickandmortyapi.com/api/character");
-      const responseJson = await response.json();
-      setItems(responseJson.results);
-      setLoading(false);
-    };
+  const fetchItems = async (url: string) => {
+    setLoading(true);
+    const response = await fetch(url);
+    const responseJson = await response.json();
+    setItems((prev) => [...prev, ...responseJson.results]);
+    setNextPage(responseJson.info.next);
 
-    fetchItems();
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchItems("https://rickandmortyapi.com/api/character");
   }, []);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        style={{ flex: 1, alignSelf: "center" }}
-        size={"large"}
-        color={"#ccc"}
-      />
-    );
-  }
 
   return (
     <SafeAreaView
@@ -47,6 +42,23 @@ const MyList = () => {
           <CharacterListItem key={index} character={item} />
         )}
         contentContainerStyle={{ gap: 50 }}
+        ListFooterComponent={() => (
+          <View>
+            {loading ? (
+              <ActivityIndicator
+                style={{ flex: 1, alignSelf: "center" }}
+                size={"large"}
+                color={"#ccc"}
+              />
+            ) : null}
+            <Text
+              onPress={() => fetchItems(nextPage)}
+              style={{ alignSelf: "center", fontSize: 20, color: "blue" }}
+            >
+              Load More
+            </Text>
+          </View>
+        )}
       />
     </SafeAreaView>
   );

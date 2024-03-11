@@ -1,9 +1,40 @@
-import { FlatList, Platform, SafeAreaView, StatusBar } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
 import character from "../data/character.json";
 import CharacterListItem from "./CharacterListItem";
-import React from "react";
+import React, { useState } from "react";
 
 const MyList = () => {
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState([]);
+
+  useState(() => {
+    const fetchItems = async () => {
+      setLoading(true);
+      const response = await fetch("https://rickandmortyapi.com/api/character");
+      const responseJson = await response.json();
+      setItems(responseJson.results);
+      setLoading(false);
+    };
+
+    fetchItems();
+  }, []);
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        style={{ flex: 1, alignSelf: "center" }}
+        size={"large"}
+        color={"#ccc"}
+      />
+    );
+  }
+
   return (
     <SafeAreaView
       style={{
@@ -11,7 +42,7 @@ const MyList = () => {
       }}
     >
       <FlatList
-        data={character.results}
+        data={items}
         renderItem={({ item, index }) => (
           <CharacterListItem key={index} character={item} />
         )}
